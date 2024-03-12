@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+    <div class="row" id="field" data-size="{{ game.size }}" data-pk="{{ game.pk }}" data-finished="{{ game.finished }} data-min_length="{{ game.min_length }} data-allow_horizontal="{{ game.allow_horizontal }} data-allow_vertical="{{ game.allow_vertical }} data-allow_diagonal="{{ game.allow_diagonal }}" data-history_url="">
+        {% comment %} {% url "api-games:game-detail" game.id %} {% endcomment %}
+
+    </div>
+    {% if not game.finished %}
+        <div class="row" id="log"></div>
+    {% endif %}
+{% endblock content %}
+
+{% block extra_js %}
+    {% if not game.finished %}
+        <script src="{% static 'js/game.js' %}"></script>
+    {% else %}
+        <script src="{% static 'js/replay-game.js' %}"></script>
+    {% endif %}
+{% endblock extra_js %}
