@@ -5,6 +5,7 @@ from channels.db import database_sync_to_async
 from django.utils import timezone
 from .tic_tac_field import TicTacField, TicTacFieldSerializer
 from . import models
+import traceback
 
 CELL_VALUES = ['X', 'O']
 
@@ -74,9 +75,9 @@ class GameConsumer(AsyncWebsocketConsumer):
             await self.handle_incoming_move(text_data, game_info, game)
 
             await self.cache_game_info(game_info)
-        except:
-            print("Hellp")
-            pass
+        except Exception as e:
+            print("error Occurred: ",e)
+            traceback.print_exc()
 
     # Utility methods
 
@@ -201,15 +202,21 @@ class GameConsumer(AsyncWebsocketConsumer):
 
     async def send_group_move_message(self, players_queue, players, x, y):
         await self.channel_layer.group_send(
-            self.room_group_name,
-            await database_sync_to_async(populate_message)('game-action',
+            self.room_group_name,{
+                'type': 'game_move',
+                'message':await database_sync_to_async(populate_message)('game-action',
                                                             f'{players[players_queue[0]]["name"]} makes a move',
                                                             type='move',
                                                             x=x,
                                                             y=y,
                                                             val=players[self.channel_name]['symbol'],
                                                             player=players[players_queue[0]]["name"])
+            }
         )
+    
+    async def game_move(self, event):
+        print("sending mesg: ", event)
+        await self.send(text_data=json.dumps(event['message']))
 
     async def handle_game_winner(self, game_info, players_queue, players, win_line):
         game_info['game-finished'] = True
